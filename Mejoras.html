@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Asistencia y Promedios - Unidad Educativa Vinces</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f6f9; 
+      color: #333; 
+      min-height: 100vh;
+    }
+    
+    /* VISTA 1: BIENVENIDA INICIAL */
+    #vista-bienvenida {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d2040 0%, #1a3a68 50%, #00122e 100%);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .escudo-container {
+      margin-bottom: 15px;
+      filter: drop-shadow(0px 10px 20px rgba(0,0,0,0.5));
+    }
+
+    .img-logo-bienvenida {
+      width: 140px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .bienvenida-titulo {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 10px 0 5px 0;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .bienvenida-subtitulo {
+      font-size: 16px;
+      font-weight: 300;
+      margin-bottom: 30px;
+      color: #cbd5e1;
+      letter-spacing: 1px;
+    }
+
+    .btn-entrar {
+      padding: 16px 42px;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffc107, #ff9800);
+      color: #0f172a;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255,193,7,0.35);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-entrar:hover {
+      background: linear-gradient(135deg, #ffca28, #ffa726);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(255,193,7,0.5);
+    }
+
+    /* MODAL DE LOGIN / SELECCIÓN DE LLAVES */
+    #modal-login {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h3 { color: #1e3a8a; margin-top: 0; margin-bottom: 15px; }
+    .input-password {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+      text-align: center;
+    }
+    .btn-modal {
+      padding: 12px 20px;
+      background: #1e3a8a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 5px;
+    }
+    .btn-modal:hover { background: #1d4ed8; }
+    .btn-cerrar-modal {
+      background: #64748b;
+      margin-top: 10px;
+    }
+    .btn-cerrar-modal:hover { background: #475569; }
+
+    /* CONTENEDOR PRINCIPAL */
+    .container { 
+      max-width: 950px; 
+      margin: auto; 
+      padding: 20px;
+    }
+
+    /* HEADER CON MENÚ DESPLEGABLE */
+    header { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      background: white; 
+      padding: 15px 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+      margin-bottom: 25px; 
+      position: relative;
+    }
+    .header-logo { display: flex; align-items: center; gap: 15px; }
+
+    .img-logo-header {
+      width: 45px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .header-titles h1 { margin: 0; font-size: 18px; color: #1e3a8a; font-weight: 800; }
+    .header-titles h2 { margin: 3px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500; }
+
+    .menu-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .btn-menu-toggle {
+      background-color: #1e3a8a;
+      color: white;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-menu-toggle:hover { background-color: #1d4ed8; }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 200px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      z-index: 10;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+
+    .dropdown-content a {
+      color: #333;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dropdown-content a:hover { background-color: #f1f5f9; color: #1e3a8a; }
+
+    /* VISTA 2: PANEL DE INICIO */
+    .home-panel {
+      background: white;
+      padding: 50px 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .home-panel h2 { color: #1e3a8a; font-size: 28px; margin-bottom: 20px; font-weight: 800; }
+    .home-panel p { color: #475569; font-size: 16px; line-height: 1.6; max-width: 600px; margin: 0 auto; }
+
+    /* VISTA 3: SELECCIÓN DE CURSOS (ASISTENCIA) */
+    .cursos-box { 
+      background: white; 
+      padding: 40px 25px; 
+      border-radius: 12px; 
+      text-align: center; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+    }
+    .cursos-box h2 { color: #1e293b; margin-bottom: 10px; font-size: 24px; font-weight: 700; }
+    .cursos-box p { color: #64748b; margin-bottom: 30px; font-size: 15px; }
+
+    .cursos-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px; }
+    .btn-curso { 
+      padding: 18px 30px; 
+      font-size: 16px; 
+      font-weight: 700; 
+      background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+      color: white; 
+      border: none; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+    }
+    .btn-curso:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(37,99,235,0.35); }
+
+    .btn-volver { 
+      display: inline-block; 
+      margin-bottom: 18px; 
+      padding: 10px 18px; 
+      background-color: #64748b; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      font-size: 14px;
+    }
+    .btn-volver:hover { background-color: #475569; }
+
+    /* VISTA 4: TABLA DE ASISTENCIA Y ESCÁNER QR */
+    .btn-container { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 20px 0; }
+    .btn-reset { padding: 12px 20px; font-size: 14px; font-weight: 700; color: white; background-color: #ef4444; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-reset:hover { background-color: #dc2626; }
+    .btn-scanner { padding: 12px 20px; font-size: 14px; font-weight: 700; color: white; background-color: #10b981; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-scanner:hover { background-color: #059669; }
+    .btn-pdf { padding: 12px 20px; font-size: 14px; font-weight: 700; color: white; background-color: #4f46e5; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-pdf:hover { background-color: #4338ca; }
+    
+    #reader {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: none;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    th, td { border: 1px solid #f1f5f9; padding: 12px 10px; text-align: center; }
+    th { background-color: #1e3a8a; color: white; font-weight: 600; font-size: 14px; }
+    
+    .presente { background-color: #dcfce7; color: #166534; font-weight: 700; }
+    .atraso { background-color: #fef3c7; color: #92400e; font-weight: 700; }
+    .falta { background-color: #fee2e2; color: #991b1b; font-weight: 700; }
+    
+    .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }
+    .qr-card { background: white; border: 1px solid #e2e8f0; padding: 15px; text-align: center; border-radius: 8px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .qr-code-box { width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; margin: 5px 0; }
+
+    .input-nota {
+      width: 50px;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .input-nota:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 4px rgba(37,99,235,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA 1: BIENVENIDA INICIAL -->
+  <div id="vista-bienvenida">
+    <div class="escudo-container">
+      <img src="logo_vinces.png" alt="Escudo Unidad Educativa Vinces" class="img-logo-bienvenida">
+    </div>
+    
+    <h1 class="bienvenida-titulo">Bienvenido a la Unidad Educativa Vinces</h1>
+    <p class="bienvenida-subtitulo">SISTEMA DIGITAL DE CONTROL DE ASISTENCIA Y NOTAS</p>
+    <button class="btn-entrar" onclick="abrirModalLogin()">Iniciar Registro ➔</button>
+  </div>
+
+  <!-- VENTANA EMERGENTE (MODAL) PARA LLAVES DE ACCESO -->
+  <div id="modal-login">
+    <div class="modal-content">
+      <h3>🔑 Ingrese su Llave de Acceso</h3>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Escriba su contraseña según su rol (Administrador, Profesor o Estudiante):</p>
+      <input type="password" id="input-llave" class="input-password" placeholder="Contraseña...">
+      <button class="btn-modal" onclick="verificarLlaveAcceso()">Ingresar al Sistema</button>
+      <button class="btn-modal btn-cerrar-modal" onclick="cerrarModalLogin()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- VENTANA EMERGENTE (MODAL) PARA QUE EL ESTUDIANTE INGRESE SU CORREO -->
+  <div id="modal-correo-estudiante" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1200; padding: 20px;">
+    <div class="modal-content">
+      <h3>📧 Consulta de Estudiante</h3>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Ingrese su correo institucional o personal registrado para ver su información:</p>
+      <input type="email" id="input-correo-estudiante" class="input-password" placeholder="ejemplo@correo.com">
+      <button class="btn-modal" onclick="verificarCorreoEstudiante()">Consultar Mis Datos</button>
+      <button class="btn-modal btn-cerrar-modal" onclick="cancelarCorreoEstudiante()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- VENTANA EMERGENTE (MODAL) PARA CONFIGURAR HORA LÍMITE (EXCLUSIVA DOCENTE / ADMIN) -->
+  <div id="modal-limite-tiempo" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1100; padding: 20px;">
+    <div class="modal-content">
+      <h3>⏰ Hora Límite de Asistencia</h3>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Establezca la hora máxima de ingreso permitida para este curso:</p>
+      <input type="time" id="input-hora-limite" class="input-password" value="07:30">
+      <button class="btn-modal" onclick="confirmarHoraLimite()">Aceptar y Abrir Curso</button>
+      <button class="btn-modal btn-cerrar-modal" onclick="cerrarModalHoraLimite()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR GENERAL PARA LAS DEMÁS VISTAS -->
+  <div class="container" id="main-container" style="display: none;">
+    
+    <header>
+      <div class="header-logo">
+        <img src="logo_vinces.png" alt="Logo Vinces" class="img-logo-header">
+        <div class="header-titles">
+          <h1>UNIDAD EDUCATIVA VINCES</h1>
+          <h2 id="rol-actual-header">Rol: Visitante</h2>
+        </div>
+      </div>
+      
+      <div class="menu-dropdown">
+        <button class="btn-menu-toggle" onclick="toggleMenu()">☰ Menú ▾</button>
+        <div id="dropdownMenu" class="dropdown-content">
+          <a onclick="irAHome()">🏠 Inicio</a>
+          <a onclick="irASeleccionCurso()">📋 Listas del Curso</a>
+          <a onclick="irAPromedios()">📊 Promedios y Notas</a>
+          <a onclick="cerrarSesion()" style="color: #ef4444; border-top: 1px solid #f1f5f9;">🚪 Cambiar Llave / Salir</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- VISTA 2: PANEL PRINCIPAL -->
+    <div id="vista-home" class="home-panel">
+      <h2>Bienvenidos a la Unidad Educativa Vinces</h2>
+      <p>Este código está hecho por un grupo de estudiantes inspirados al Código de la Nueva Era.</p>
+    </div>
+
+    <!-- VISTA 3: SELECCIÓN DE CURSOS (ASISTENCIA) -->
+    <div id="vista-cursos" style="display: none;">
+      <div class="cursos-box">
+        <h2>Seleccione el Curso</h2>
+        <p>Haga clic en el curso correspondiente para acceder a la lista de asistencia:</p>
+        
+        <div class="cursos-grid">
+          <button class="btn-curso" onclick="prepararAccesoCurso('3A')">📋 Tercero "A" Técnico</button>
+          <button class="btn-curso" onclick="prepararAccesoCurso('3B')">📋 Tercero "B" Técnico</button>
+          <button class="btn-curso" onclick="prepararAccesoCurso('3C')">📋 Tercero "C" Técnico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA 5: SELECCIÓN DE CURSOS (PROMEDIOS) -->
+    <div id="vista-promedios-seleccion" style="display: none;">
+      <div class="cursos-box">
+        <h2>Módulo de Notas y Promedios</h2>
+        <p id="aviso-permiso-notas" style="margin-bottom: 20px; color: #64748b; font-size: 14px;"></p>
+        <p>Seleccione el curso para registrar o visualizar las notas:</p>
+        
+        <div class="cursos-grid">
+          <button class="btn-curso" onclick="abrirTablaPromediosCurso('3A')">📋 Tercero "A" Técnico</button>
+          <button class="btn-curso" onclick="abrirTablaPromediosCurso('3B')">📋 Tercero "B" Técnico</button>
+          <button class="btn-curso" onclick="abrirTablaPromediosCurso('3C')">📋 Tercero "C" Técnico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA NUEVA: VISTA INDIVIDUAL PARA EL ESTUDIANTE (MUESTRA ASISTENCIA Y PROMEDIO JUNTOS) -->
+    <div id="vista-estudiante-personal" style="display: none;" class="home-panel">
+      <h2 style="color: #1e3a8a; margin-bottom: 5px;">Información Personal del Estudiante</h2>
+      <p id="est-info-correo" style="color: #64748b; font-size: 14px; margin-bottom: 25px;"></p>
+      
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; text-align: left; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+        <p style="margin: 8px 0;"><strong>ID:</strong> <span id="est-res-id"></span></p>
+        <p style="margin: 8px 0;"><strong>Nombre Completo:</strong> <span id="est-res-nombre" style="color: #1e3a8a; font-weight: bold;"></span></p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+        <p style="margin: 8px 0;"><strong>Estado de Asistencia:</strong> <span id="est-res-asistencia" style="padding: 4px 8px; border-radius: 4px;"></span> (Hora: <span id="est-res-hora"></span>)</p>
+        <p style="margin: 8px 0;"><strong>Promedio Final:</strong> <span id="est-res-promedio" style="font-size: 18px; font-weight: bold; color: #1e3a8a;"></span></p>
+      </div>
+
+      <button class="btn-volver" style="margin-top: 25px;" onclick="irAHome()">⬅ Volver al Inicio</button>
+    </div>
+
+    <!-- VISTA 6: TABLA INDEPENDIENTE DE PROMEDIOS POR CURSO -->
+    <div id="vista-promedios-tabla" style="display: none;">
+      <button class="btn-volver" onclick="irAPromedios()">⬅ Volver a Selección de Cursos</button>
+      
+      <div class="home-panel" style="text-align: left; padding: 30px;">
+        <h3 id="titulo-promedios-curso" style="color: #0f172a; text-align: center; margin-top: 0; margin-bottom: 20px;"></h3>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre del Estudiante</th>
+                <th>Nota 1</th>
+                <th>Nota 2</th>
+                <th>Nota 3</th>
+                <th>Nota 4</th>
+                <th>Nota 5</th>
+                <th>Promedio</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-promedios-estudiantes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA 4: LISTA, ESCÁNER Y QR (ASISTENCIA) -->
+    <div id="vista-lista" style="display: none;">
+      <button class="btn-volver" onclick="irASeleccionCurso()">⬅ Volver a Cursos</button>
+      
+      <div class="btn-container" id="contenedor-botones-asistencia">
+        <button class="btn-scanner" id="btn-sec-scanner" onclick="alternarEscanner()">📷 Activar / Cerrar Escáner QR</button>
+        <button class="btn-pdf" onclick="descargarPDF()">📄 Guardar Lista en PDF</button>
+        <button class="btn-reset" id="btn-sec-reset" onclick="reiniciarAsistencia()">🔄 Reiniciar Asistencia General</button>
+      </div>
+
+      <div id="reader"></div>
+
+      <div id="area-exportar-pdf">
+        <h2 id="titulo-curso" style="text-align:center; color: #0f172a; font-weight: 800; margin-top: 15px;"></h2>
+        <p id="etiqueta-hora-limite-mostrada" style="text-align:center; color: #64748b; font-size: 13px; margin-bottom: 15px;"></p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre Completo</th>
+              <th>Hora</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-estudiantes"></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:35px; color: #1e293b; text-align: center;">Carnets Identificadores con Códigos QR</h3>
+      <div class="qr-grid" id="qr-container"></div>
+    </div>
+
+  </div>
+
+<script>
+  // CONTRASEÑAS O LLAVES DE ACCESO DIFERENCIADAS
+  const LLAVES = {
+    admin: "admin123",      
+    profesor: "profe456",   
+    visitante: "invitado"   
+  };
+
+  let rolActual = null;
+
+  // BASE DE DATOS COMPLETA DE LOS 3 CURSOS (CON CORREO ELECTRÓNICO ASIGNADO A CADA ESTUDIANTE)
+  const baseDeDatos = {
+    "3A": [
+      { id: "3A-01", nombre: "ALVARADO HERRERA DAMIAN ALBERTO", correo: "damian.alvarado@vinces.edu.ec" },
+      { id: "3A-02", nombre: "ANGULO ELIZONDO EVELYN CAROLINA", correo: "evelyn.angulo@vinces.edu.ec" },
+      { id: "3A-03", nombre: "ARANA ARIAS JOSUE RIGOBERTO", correo: "josue.arana@vinces.edu.ec" },
+      { id: "3A-04", nombre: "ARIAS ALVARADO MELODY MARITA", correo: "melody.arias@vinces.edu.ec" },
+      { id: "3A-05", nombre: "BANCHEN RIVAS YAIKEL JACINTO", correo: "yaikel.banchen@vinces.edu.ec" },
+      { id: "3A-06", nombre: "BRAVO CARRIEL JORDANA VALENTINA", correo: "jordana.bravo@vinces.edu.ec" },
+      { id: "3A-07", nombre: "BRIONES ARVELAES LUIS MIGUEL", correo: "luis.briones@vinces.edu.ec" },
+      { id: "3A-08", nombre: "CABELLO SANTILLAN DAMIAN ALEISANDER", correo: "damian.cabello@vinces.edu.ec" },
+      { id: "3A-09", nombre: "CAMEJO MORA HENDRIK DANIEL", correo: "hendrik.camejo@vinces.edu.ec" },
+      { id: "3A-10", nombre: "CANO JIMENEZ SNEIDER JADIR", correo: "sneider.cano@vinces.edu.ec" },
+      { id: "3A-11", nombre: "CARRIEL DELGADO IVAN ARTURO", correo: "ivan.carriel@vinces.edu.ec" },
+      { id: "3A-12", nombre: "COELLO PERALTA ROXANA GABRIELA", correo: "roxana.coello@vinces.edu.ec" },
+      { id: "3A-13", nombre: "FRANCO TERAN ANNE NOHELY", correo: "anne.franco@vinces.edu.ec" },
+      { id: "3A-14", nombre: "GARCIA BONILLA GISLAINE NAIDELY", correo: "gislaine.garcia@vinces.edu.ec" },
+      { id: "3A-15", nombre: "GILCER TOALA ALLISON VALENTINA", correo: "allison.gilcer@vinces.edu.ec" },
+      { id: "3A-16", nombre: "GUILLIN HOLGUIN SNAIDER ANTONIO", correo: "snaider.guillin@vinces.edu.ec" },
+      { id: "3A-17", nombre: "LEON VINCES BETZY VALESKA", correo: "betzy.leon@vinces.edu.ec" },
+      { id: "3A-18", nombre: "MARTINEZ COELLO ANGEL ANDRES", correo: "angel.martinez@vinces.edu.ec" },
+      { id: "3A-19", nombre: "MONTES SOLORZANO ANAHI FERNANDA", correo: "anahi.montes@vinces.edu.ec" },
+      { id: "3A-20", nombre: "MOSQUERA PINCAY ERICK DE JESUS", correo: "erick.mosquera@vinces.edu.ec" },
+      { id: "3A-21", nombre: "MUÑOZ HERRERA ERIN JOAQUIN", correo: "erin.munoz@vinces.edu.ec" },
+      { id: "3A-22", nombre: "ORTIZ LEON SCARLETH EMELINA", correo: "scarleth.ortiz@vinces.edu.ec" },
+      { id: "3A-23", nombre: "PIGUAVE NAVARRO DENISSE RUBI", correo: "denisse.piguave@vinces.edu.ec" },
+      { id: "3A-24", nombre: "RIVERA GARCIA WELLINTONG JOSE", correo: "wellintong.rivera@vinces.edu.ec" },
+      { id: "3A-25", nombre: "RIVERA MUÑOZ AXEL MISHELL", correo: "axel.rivera@vinces.edu.ec" },
+      { id: "3A-26", nombre: "ROSADO LOOR DALEMBER DANIEL", correo: "dalember.rosado@vinces.edu.ec" },
+      { id: "3A-27", nombre: "SANTANA MANRIQUE STEVEN ANDRES", correo: "steven.santana@vinces.edu.ec" },
+      { id: "3A-28", nombre: "TEJADA GOROTIZA JULIO CESAR", correo: "julio.tejada@vinces.edu.ec" },
+      { id: "3A-29", nombre: "VILLAMAR ZARATE ANELYS ROXANA", correo: "anelys.villamar@vinces.edu.ec" },
+      { id: "3A-30", nombre: "ZAMBRANO MORAN DANNA VALESKA", correo: "danna.zambrano@vinces.edu.ec" },
+      { id: "3A-31", nombre: "ZURITA MUÑOZ MIBARFALI JAZMIN", correo: "mibarfali.zurita@vinces.edu.ec" }
+    ],
+    "3B": [
+      { id: "3B-01", nombre: "ALVARADO TRIANA JONATHAN JOFFRE", correo: "jonathan.alvarado@vinces.edu.ec" },
+      { id: "3B-02", nombre: "ARANA BAZURTO WENDY ISABELA", correo: "wendy.arana@vinces.edu.ec" },
+      { id: "3B-03", nombre: "BRAVO SILVA JEREMY SANTIAGO", correo: "jeremy.bravo@vinces.edu.ec" },
+      { id: "3B-04", nombre: "BUSTAMANTE MORA AURELIO MIGUEL", correo: "aurelio.bustamante@vinces.edu.ec" },
+      { id: "3B-05", nombre: "CABRERA GOYON NEBRASKA YUDDY", correo: "nebraska.cabrera@vinces.edu.ec" },
+      { id: "3B-06", nombre: "CAMPUZANO GILSE MIRLEN DAKIRA", correo: "mirlen.campuzano@vinces.edu.ec" },
+      { id: "3B-07", nombre: "CASTRO MOREIRA FELIX ALEJANDRO", correo: "felix.castro@vinces.edu.ec" },
+      { id: "3B-08", nombre: "COELLO VILLAMAR FIORELLA JAHAIRA", correo: "fiorella.coello@vinces.edu.ec" },
+      { id: "3B-09", nombre: "DEL PEZO PACHECO ORLY SMITH", correo: "orly.delpezo@vinces.edu.ec" },
+      { id: "3B-10", nombre: "DIAZ MENDOZA NESTOR YARETH", correo: "nestor.diaz@vinces.edu.ec" },
+      { id: "3B-11", nombre: "FUENTES CRUZ ARIANA ASHLEY", correo: "ariana.fuentes@vinces.edu.ec" },
+      { id: "3B-12", nombre: "GARCIA JIMENEZ ANTHONY ALFREDO", correo: "anthony.garcia@vinces.edu.ec" },
+      { id: "3B-13", nombre: "GILSE MORAN SABINO JOSIAS", correo: "sabino.gilse@vinces.edu.ec" },
+      { id: "3B-14", nombre: "HOLGUIN PIN YERSON YANDEL", correo: "yerson.holguin@vinces.edu.ec" },
+      { id: "3B-15", nombre: "LEON CASTRO SAYURI DANIELLE", correo: "sayuri.leon@vinces.edu.ec" },
+      { id: "3B-16", nombre: "LINO MIRANDA JEREMY RODRIGO", correo: "jeremy.lino@vinces.edu.ec" },
+      { id: "3B-17", nombre: "MACIAS QUISPE SIOMET DANIELA", correo: "siomet.macias@vinces.edu.ec" },
+      { id: "3B-18", nombre: "MENDOZA ESTRADA CARLOS EMILIO", correo: "carlos.mendoza@vinces.edu.ec" },
+      { id: "3B-19", nombre: "MENDOZA MUÑOZ MANUEL SEBASTIAN", correo: "manuel.mendoza@vinces.edu.ec" },
+      { id: "3B-20", nombre: "MONTIEL HIDALGO GERRARD IBRAHIMOVIC", correo: "gerrard.montiel@vinces.edu.ec" },
+      { id: "3B-21", nombre: "PERALTA VERA MAYBELING NAYELLI", correo: "maybeling.peralta@vinces.edu.ec" },
+      { id: "3B-22", nombre: "PEREZ SANTILLAN SHEYLA YOLANDA", correo: "sheyla.perez@vinces.edu.ec" },
+      { id: "3B-23", nombre: "PEÑA PERALTA KAROLINE RAFAELA", correo: "karoline.pena@vinces.edu.ec" },
+      { id: "3B-24", nombre: "POSLIGUA MENDEZ CARLOS GUILLERMO", correo: "carlos.posligua@vinces.edu.ec" },
+      { id: "3B-25", nombre: "RIZZO MENDOZA SEAN FERNANDO", correo: "sean.rizzo@vinces.edu.ec" },
+      { id: "3B-26", nombre: "RUIZ CARRIEL ADAN GABRIEL", correo: "adan.ruiz@vinces.edu.ec" },
+      { id: "3B-27", nombre: "SOTOMAYOR JIMENEZ CARLOS ENRIQUE", correo: "carlos.sotomayor@vinces.edu.ec" },
+      { id: "3B-28", nombre: "SOTOMAYOR JIMENEZ CARLOS MAURICIO", correo: "carlosm.sotomayor@vinces.edu.ec" },
+      { id: "3B-29", nombre: "VILLASAGUA BASURTO TAYRON HERNAN", correo: "tayron.villasagua@vinces.edu.ec" },
+      { id: "3B-30", nombre: "TERRY MATÍAS MENA GÓMEZ", correo: "terry.mena@vinces.edu.ec" }
+    ],
+    "3C": [
+      { id: "3C-01", nombre: "BANCHEN HAZ ASHLEY VALESKA", correo: "ashley.banchen@vinces.edu.ec" },
+      { id: "3C-02", nombre: "BRIONES AGUIRRE KATHIA MILAGROS", correo: "kathia.briones@vinces.edu.ec" },
+      { id: "3C-03", nombre: "BUSTAMANTE YELA MAXIMILIANO ELADIO", correo: "maximiliano.bustamante@vinces.edu.ec" },
+      { id: "3C-04", nombre: "CALI HOLGUIN JOSE LUIS", correo: "jose.cali@vinces.edu.ec" },
+      { id: "3C-05", nombre: "CHING BUSTAMANTE JIMMY ROBERTO", correo: "jimmy.ching@vinces.edu.ec" },
+      { id: "3C-06", nombre: "CLEMENTE PINCAY DEREK MATHIAS", correo: "derek.clemente@vinces.edu.ec" },
+      { id: "3C-07", nombre: "CUJILAN SUAREZ GENESIS LUCERO", correo: "genesis.cujilan@vinces.edu.ec" },
+      { id: "3C-08", nombre: "FERNANDEZ LEON YISLAINE DALEXI", correo: "yislaine.fernandez@vinces.edu.ec" },
+      { id: "3C-09", nombre: "FUENTES UBE MAIKEL MEDARDO", correo: "maikel.fuentes@vinces.edu.ec" },
+      { id: "3C-10", nombre: "GARCIA YELA ALEXANDRA ISABEL", correo: "alexandra.garcia@vinces.edu.ec" },
+      { id: "3C-11", nombre: "GUERRERO TREJO DAMIAN ANDRES", correo: "damian.guerrero@vinces.edu.ec" },
+      { id: "3C-12", nombre: "LEON MORA DEIDANIA LISBETH", correo: "deidania.leon@vinces.edu.ec" },
+      { id: "3C-13", nombre: "MACIAS CEDEÑO ELVIS PAUL", correo: "elvis.macias@vinces.edu.ec" },
+      { id: "3C-14", nombre: "MENDOZA MUÑOZ ADAMARIS GRACIELA", correo: "adamaris.mendoza@vinces.edu.ec" },
+      { id: "3C-15", nombre: "MENDOZA MUÑOZ JORDANA ELIBETH", correo: "jordana.mendoza@vinces.edu.ec" },
+      { id: "3C-16", nombre: "MIELES OSORIO ANGEL JOSE", correo: "angel.mieles@vinces.edu.ec" },
+      { id: "3C-17", nombre: "MOREIRA MORA MIRLEY MARGOTH", correo: "mirley.moreira@vinces.edu.ec" },
+      { id: "3C-18", nombre: "MUÑOZ ESPAÑA EVELIN ILUSION", correo: "evelin.munoz@vinces.edu.ec" },
+      { id: "3C-19", nombre: "ORTEGA AVILES WALTER JOEL", correo: "walter.ortega@vinces.edu.ec" },
+      { id: "3C-20", nombre: "PEREZ SANCHEZ JENNIFER GABRIELA", correo: "jennifer.perez@vinces.edu.ec" },
+      { id: "3C-21", nombre: "PEÑAFIEL MORA JORYI JAVIER", correo: "joryi.penafiel@vinces.edu.ec" },
+      { id: "3C-22", nombre: "RONQUILLO RUIZ BRYAN ARISTEO", correo: "bryan.ronquillo@vinces.edu.ec" },
+      { id: "3C-23", nombre: "RUIZ ESCOBAR KETZIA ROMINA", correo: "ketzia.ruiz@vinces.edu.ec" },
+      { id: "3C-24", nombre: "SANCHEZ LICOA ANTHONY LENIN", correo: "anthony.sanchez@vinces.edu.ec" },
+      { id: "3C-25", nombre: "SOLIS MIÑO HERVIS DARLEYS", correo: "hervis.solis@vinces.edu.ec" },
+      { id: "3C-26", nombre: "SUAREZ AGUIRRE NELSON ARTURO", correo: "nelson.suarez@vinces.edu.ec" },
+      { id: "3C-27", nombre: "VELIZ LEON JEFFREY DAMIAN", correo: "jeffrey.veliz@vinces.edu.ec" }
+    ]
+  };
+
+  let cursoActual = null;
+  let cursoPendienteSeleccion = null;
+  let horaLimiteAsistencia = "07:30";
+  let cursoActualPromedios = null;
+  let registroAsistencia = {};
+  let registroNotas = {};
+  let html5QrCode = null;
+  let escannerActivo = false;
+
+  function abrirModalLogin() {
+    document.getElementById("modal-login").style.display = "flex";
+    document.getElementById("input-llave").value = "";
+    document.getElementById("input-llave").focus();
+  }
+
+  function cerrarModalLogin() {
+    document.getElementById("modal-login").style.display = "none";
+  }
+
+  function verificarLlaveAcceso() {
+    const claveIngresada = document.getElementById("input-llave").value.trim();
+
+    if (claveIngresada === LLAVES.admin) {
+      rolActual = "admin";
+      cerrarModalLogin();
+      actualizarInterfazSegunRol();
+      irAHome();
+    } else if (claveIngresada === LLAVES.profesor) {
+      rolActual = "profesor";
+      cerrarModalLogin();
+      actualizarInterfazSegunRol();
+      irAHome();
+    } else if (claveIngresada === LLAVES.visitante) {
+      rolActual = "visitante";
+      cerrarModalLogin();
+      actualizarInterfazSegunRol();
+      // Si es estudiante/visitante, le abrimos de inmediato el cuadro para que escriba su correo
+      document.getElementById("modal-correo-estudiante").style.display = "flex";
+      document.getElementById("input-correo-estudiante").value = "";
+      document.getElementById("input-correo-estudiante").focus();
+    } else {
+      alert("❌ Llave de acceso incorrecta. Intente nuevamente.");
+    }
+  }
+
+  function cancelarCorreoEstudiante() {
+    document.getElementById("modal-correo-estudiante").style.display = "none";
+    abrirModalLogin(); // Vuelve a pedir la llave si cancela
+  }
+
+  function verificarCorreoEstudiante() {
+    const correoIngresado = document.getElementById("input-correo-estudiante").value.trim().toLowerCase();
+    if (!correoIngresado) {
+      alert("Por favor ingrese un correo electrónico válido.");
+      return;
+    }
+
+    // Buscar al estudiante en los 3 cursos por su correo
+    let estudianteEncontrado = null;
+    let cursoDelEstudiante = null;
+
+    Object.keys(baseDeDatos).forEach(cursoKey => {
+      const encontrado = baseDeDatos[cursoKey].find(est => est.correo.toLowerCase() === correoIngresado);
+      if (encontrado) {
+        estudianteEncontrado = encontrado;
+        cursoDelEstudiante = cursoKey;
+      }
+    });
+
+    if (!estudianteEncontrado) {
+      alert("❌ Correo no encontrado en la base de datos de estudiantes. Verifique e intente nuevamente.");
+      return;
+    }
+
+    document.getElementById("modal-correo-estudiante").style.display = "none";
+    
+    // Rellenar la vista personal del estudiante con sus datos de asistencia y notas al mismo tiempo
+    document.getElementById("est-info-correo").textContent = `Correo registrado: ${estudianteEncontrado.correo} (${obtenerEtiquetaCurso(cursoDelEstudiante)})`;
+    document.getElementById("est-res-id").textContent = estudianteEncontrado.id;
+    document.getElementById("est-res-nombre").textContent = estudianteEncontrado.nombre;
+
+    // Obtener asistencia
+    const infoAsis = registroAsistencia[estudianteEncontrado.id] || { estado: "Falta", hora: "--" };
+    const spanAsis = document.getElementById("est-res-asistencia");
+    spanAsis.textContent = infoAsis.estado;
+    spanAsis.className = claseEstado(infoAsis.estado);
+    document.getElementById("est-res-hora").textContent = infoAsis.hora;
+
+    // Obtener promedio
+    const notasEst = registroNotas[estudianteEncontrado.id] || ["", "", "", "", ""];
+    document.getElementById("est-res-promedio").textContent = calcularPromedio(notasEst);
+
+    // Mostrar la vista independiente del estudiante
+    document.getElementById("vista-bienvenida").style.display = "none";
+    document.getElementById("main-container").style.display = "block";
+    ocultarTodasLasVistas();
+    document.getElementById("vista-estudiante-personal").style.display = "block";
+  }
+
+  function actualizarInterfazSegunRol() {
+    const txtRol = document.getElementById("rol-actual-header");
+    const avisoNotas = document.getElementById("aviso-permiso-notas");
+    const btnReset = document.getElementById("btn-sec-reset");
+    const btnScanner = document.getElementById("btn-sec-scanner");
+
+    if (rolActual === "admin") {
+      txtRol.textContent = "Rol: Administrador (Control Total)";
+      avisoNotas.textContent = "Tiene permiso total para modificar las 5 notas de los estudiantes.";
+      if (btnReset) btnReset.style.display = "inline-block";
+      if (btnScanner) btnScanner.style.display = "inline-block";
+    } else if (rolActual === "profesor") {
+      txtRol.textContent = "Rol: Profesor";
+      avisoNotas.textContent = "Puede ingresar y modificar las 5 notas de los estudiantes, configurar hora límite, reiniciar asistencias y descargar en PDF.";
+      if (btnReset) btnReset.style.display = "inline-block";
+      if (btnScanner) btnScanner.style.display = "none";
+    } else {
+      txtRol.textContent = "Rol: Estudiante";
+      avisoNotas.textContent = "Modo de consulta personal.";
+    }
+  }
+
+  function cerrarSesion() {
+    cerrarEscannerSiEstaAbierto();
+    rolActual = null;
+    document.getElementById("main-container").style.display = "none";
+    document.getElementById("vista-bienvenida").style.display = "flex";
+    abrirModalLogin();
+  }
+
+  function cargarDatosGuardados() {
+    try {
+      const datosAsistencia = localStorage.getItem("asistencia_uev_datos");
+      if (datosAsistencia) {
+        registroAsistencia = JSON.parse(datosAsistencia);
+      } else {
+        inicializarEstructuraAsistencia();
+      }
+
+      const datosNotas = localStorage.getItem("notas_uev_datos");
+      if (datosNotas) {
+        registroNotas = JSON.parse(datosNotas);
+      } else {
+        inicializarEstructuraNotas();
+      }
+    } catch(e) {
+      inicializarEstructuraAsistencia();
+      inicializarEstructuraNotas();
+    }
+  }
+
+  function inicializarEstructuraAsistencia() {
+    registroAsistencia = {};
+    Object.keys(baseDeDatos).forEach(curso => {
+      baseDeDatos[curso].forEach(est => {
+        registroAsistencia[est.id] = { estado: "Falta", hora: "--" };
+      });
+    });
+    guardarDatosLocalmente();
+  }
+
+  function inicializarEstructuraNotas() {
+    registroNotas = {};
+    Object.keys(baseDeDatos).forEach(curso => {
+      baseDeDatos[curso].forEach(est => {
+        registroNotas[est.id] = ["", "", "", "", ""];
+      });
+    });
+    guardarNotasLocalmente();
+  }
+
+  function guardarDatosLocalmente() {
+    try {
+      localStorage.setItem("asistencia_uev_datos", JSON.stringify(registroAsistencia));
+    } catch(e) {}
+  }
+
+  function guardarNotasLocalmente() {
+    try {
+      localStorage.setItem("notas_uev_datos", JSON.stringify(registroNotas));
+    } catch(e) {}
+  }
+
+  function obtenerEtiquetaCurso(codigo) {
+    if (codigo === "3A") return 'Tercero "A" Técnico';
+    if (codigo === "3B") return 'Tercero "B" Técnico';
+    if (codigo === "3C") return 'Tercero "C" Técnico';
+    return '';
+  }
+
+  function toggleMenu() {
+    const dropdown = document.getElementById("dropdownMenu");
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+  }
+
+  window.onclick = function(event) {
+    if (!event.target.matches('.btn-menu-toggle')) {
+      const dropdowns = document.getElementsByClassName("dropdown-content");
+      for (let i = 0; i < dropdowns.length; i++) {
+        let openDropdown = dropdowns[i];
+        if (openDropdown.style.display === "block") {
+          openDropdown.style.display = "none";
+        }
+      }
+    }
+  }
+
+  function ocultarTodasLasVistas() {
+    document.getElementById("vista-home").style.display = "none";
+    document.getElementById("vista-cursos").style.display = "none";
+    document.getElementById("vista-promedios-seleccion").style.display = "none";
+    document.getElementById("vista-promedios-tabla").style.display = "none";
+    document.getElementById("vista-estudiante-personal").style.display = "none";
+    document.getElementById("vista-lista").style.display = "none";
+  }
+
+  function irAHome() {
+    if (!rolActual) { abrirModalLogin(); return; }
+    if (rolActual === "visitante") {
+      // Si es estudiante y quiere volver a casa, le permitimos cambiar de correo o reingresar su correo
+      document.getElementById("modal-correo-estudiante").style.display = "flex";
+      document.getElementById("input-correo-estudiante").value = "";
+      return;
+    }
+    cerrarEscannerSiEstaAbierto();
+    document.getElementById("vista-bienvenida").style.display = "none";
+    document.getElementById("main-container").style.display = "block";
+    ocultarTodasLasVistas();
+    document.getElementById("vista-home").style.display = "block";
+  }
+
+  function irASeleccionCurso() {
+    if (!rolActual) { abrirModalLogin(); return; }
+    if (rolActual === "visitante") return;
+    cerrarEscannerSiEstaAbierto();
+    document.getElementById("vista-bienvenida").style.display = "none";
+    document.getElementById("main-container").style.display = "block";
+    ocultarTodasLasVistas();
+    document.getElementById("vista-cursos").style.display = "block";
+  }
+
+  function irAPromedios() {
+    if (!rolActual) { abrirModalLogin(); return; }
+    if (rolActual === "visitante") return;
+    cerrarEscannerSiEstaAbierto();
+    document.getElementById("vista-bienvenida").style.display = "none";
+    document.getElementById("main-container").style.display = "block";
+    ocultarTodasLasVistas();
+    document.getElementById("vista-promedios-seleccion").style.display = "block";
+  }
+
+  function abrirTablaPromediosCurso(codigoCurso) {
+    if (!rolActual) { abrirModalLogin(); return; }
+    cursoActualPromedios = codigoCurso;
+    document.getElementById("titulo-promedios-curso").textContent = `Notas y Promedios - ${obtenerEtiquetaCurso(codigoCurso)}`;
+    
+    ocultarTodasLasVistas();
+    document.getElementById("vista-promedios-tabla").style.display = "block";
+    
+    const tabla = document.getElementById("tabla-promedios-estudiantes");
+    tabla.innerHTML = "";
+
+    const estudiantes = baseDeDatos[codigoCurso] || [];
+    const esSoloLectura = (rolActual === "visitante");
+
+    estudiantes.forEach(est => {
+      if (!registroNotas[est.id]) {
+        registroNotas[est.id] = ["", "", "", "", ""];
+      }
+      const notas = registroNotas[est.id];
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${est.id}</td>
+        <td style="text-align: left; font-weight: 600;">${est.nombre}</td>
+        <td><input type="number" min="0" max="10" step="0.1" class="input-nota" value="${notas[0]}" ${esSoloLectura ? 'disabled' : ''} oninput="actualizarNota('${est.id}', 0, this.value)"></td>
+        <td><input type="number" min="0" max="10" step="0.1" class="input-nota" value="${notas[1]}" ${esSoloLectura ? 'disabled' : ''} oninput="actualizarNota('${est.id}', 1, this.value)"></td>
+        <td><input type="number" min="0" max="10" step="0.1" class="input-nota" value="${notas[2]}" ${esSoloLectura ? 'disabled' : ''} oninput="actualizarNota('${est.id}', 2, this.value)"></td>
+        <td><input type="number" min="0" max="10" step="0.1" class="input-nota" value="${notas[3]}" ${esSoloLectura ? 'disabled' : ''} oninput="actualizarNota('${est.id}', 3, this.value)"></td>
+        <td><input type="number" min="0" max="10" step="0.1" class="input-nota" value="${notas[4]}" ${esSoloLectura ? 'disabled' : ''} oninput="actualizarNota('${est.id}', 4, this.value)"></td>
+        <td id="prom-${est.id}" style="font-weight: bold; color: #1e3a8a;">${calcularPromedio(notas)}</td>
+      `;
+      tabla.appendChild(tr);
+    });
+  }
+
+  function actualizarNota(idEstudiante, indice, valor) {
+    if (rolActual === "visitante") return;
+    if (!registroNotas[idEstudiante]) {
+      registroNotas[idEstudiante] = ["", "", "", "", ""];
+    }
+    registroNotas[idEstudiante][indice] = valor;
+    guardarNotasLocalmente();
+
+    const celdaPromedio = document.getElementById(`prom-${idEstudiante}`);
+    if (celdaPromedio) {
+      celdaPromedio.textContent = calcularPromedio(registroNotas[idEstudiante]);
+    }
+  }
+
+  function calcularPromedio(notasArray) {
+    let suma = 0;
+    let cantidad = 0;
+    for (let i = 0; i < notasArray.length; i++) {
+      let val = parseFloat(notasArray[i]);
+      if (!isNaN(val)) {
+        suma += val;
+        cantidad++;
+      }
+    }
+    if (cantidad === 0) return "--";
+    return (suma / cantidad).toFixed(2);
+  }
+
+  function prepararAccesoCurso(codigoCurso) {
+    if (!rolActual) { abrirModalLogin(); return; }
+    if (rolActual === "visitante") return;
+
+    cursoPendienteSeleccion = codigoCurso;
+    document.getElementById("modal-limite-tiempo").style.display = "flex";
+  }
+
+  function cerrarModalHoraLimite() {
+    document.getElementById("modal-limite-tiempo").style.display = "none";
+    cursoPendienteSeleccion = null;
+  }
+
+  function confirmarHoraLimite() {
+    const horaIngresada = document.getElementById("input-hora-limite").value;
+    if (!horaIngresada) {
+      alert("Por favor seleccione una hora límite válida.");
+      return;
+    }
+    horaLimiteAsistencia = horaIngresada;
+    document.getElementById("modal-limite-tiempo").style.display = "none";
+
+    cursoActual = cursoPendienteSeleccion;
+    cursoPendienteSeleccion = null;
+
+    document.getElementById("titulo-curso").textContent = `Lista de Asistencia - ${obtenerEtiquetaCurso(cursoActual)}`;
+    document.getElementById("etiqueta-hora-limite-mostrada").textContent = `⏱️ Hora límite configurada para el ingreso: ${horaLimiteAsistencia}`;
+    
+    ocultarTodasLasVistas();
+    document.getElementById("vista-lista").style.display = "block";
+
+    renderizarCurso();
+  }
+
+  function renderizarCurso() {
+    const tabla = document.getElementById("tabla-estudiantes");
+    const qrContainer = document.getElementById("qr-container");
+    tabla.innerHTML = "";
+    qrContainer.innerHTML = "";
+
+    const estudiantes = baseDeDatos[cursoActual] || [];
+
+    estudiantes.forEach(est => {
+      const info = registroAsistencia[est.id] || { estado: "Falta", hora: "--" };
+      
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${est.id}</td>
+        <td>${est.nombre}</td>
+        <td id="h-${est.id}">${info.hora}</td>
+        <td><span id="e-${est.id}" class="${claseEstado(info.estado)}">${info.estado}</span></td>
+      `;
+      tabla.appendChild(tr);
+
+      const card = document.createElement("div");
+      card.className = "qr-card";
+      card.innerHTML = `
+        <strong>${est.nombre}</strong>
+        <div class="qr-code-box" id="qrcode-${est.id}"></div>
+        <span style="font-family:monospace; font-weight:bold;">ID: ${est.id}</span>
+      `;
+      qrContainer.appendChild(card);
+
+      new QRCode(document.getElementById(`qrcode-${est.id}`), {
+        text: est.id,
+        width: 90,
+        height: 90,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    });
+  }
+
+  function claseEstado(estado) {
+    if (estado === "Asistió") return "presente";
+    if (estado === "Atraso") return "atraso";
+    return "falta";
+  }
+
+  function reiniciarAsistencia() {
+    if (rolActual === "visitante") return;
+    if(!cursoActual) return;
+    if(confirm("¿Está seguro de reiniciar la asistencia de este curso?")) {
+      baseDeDatos[cursoActual].forEach(est => {
+        registroAsistencia[est.id] = { estado: "Falta", hora: "--" };
+      });
+      guardarDatosLocalmente();
+      renderizarCurso();
+    }
+  }
+
+  function descargarPDF() {
+    const elemento = document.getElementById("area-exportar-pdf");
+    const opciones = {
+      margin:       10,
+      filename:     `Asistencia_${cursoActual}_Vinces.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().from(elemento).set(opciones).save();
+  }
+
+  function alternarEscanner() {
+    if (rolActual !== "admin") {
+      alert("Acceso denegado. Solo el administrador puede usar el escáner.");
+      return;
+    }
+    const readerDiv = document.getElementById("reader");
+    if (escannerActivo) {
+      cerrarEscannerSiEstaAbierto();
+    } else {
+      readerDiv.style.display = "block";
+      escannerActivo = true;
+      
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          const estudiantesCurso = baseDeDatos[cursoActual] || [];
+          const encontrado = estudiantesCurso.find(e => e.id === decodedText);
+          if (encontrado) {
+            const ahora = new Date();
+            const horas = String(ahora.getHours()).padStart(2, '0');
+            const minutos = String(ahora.getMinutes()).padStart(2, '0');
+            const horaActualStr = `${horas}:${minutos}`;
+
+            let estado = "Asistió";
+            if (horaActualStr > horaLimiteAsistencia) {
+              estado = "Atraso";
+            }
+
+            registroAsistencia[encontrado.id] = { estado: estado, hora: horaActualStr };
+            guardarDatosLocalmente();
+
+            const celdaHora = document.getElementById(`h-${encontrado.id}`);
+            const celdaEstado = document.getElementById(`e-${encontrado.id}`);
+            if (celdaHora && celdaEstado) {
+              celdaHora.textContent = horaActualStr;
+              celdaEstado.textContent = estado;
+              celdaEstado.className = claseEstado(estado);
+            }
+          }
+        },
+        (errorMessage) => {}
+      ).catch((err) => {
+        alert("No se pudo iniciar la cámara.");
+        readerDiv.style.display = "none";
+        escannerActivo = false;
+      });
+    }
+  }
+
+  function cerrarEscannerSiEstaAbierto() {
+    if (html5QrCode && escannerActivo) {
+      html5QrCode.stop().then(() => {
+        html5QrCode.clear();
+        escannerActivo = false;
+        document.getElementById("reader").style.display = "none";
+      }).catch(err => {
+        escannerActivo = false;
+        document.getElementById("reader").style.display = "none";
+      });
+    } else {
+      escannerActivo = false;
+      document.getElementById("reader").style.display = "none";
+    }
+  }
+
+  cargarDatosGuardados();
+</script>
+</body>
+</html>
